@@ -1,0 +1,154 @@
+<head>
+<title>tech support</title>
+</head>
+<body>
+<div id="discussion"></div>
+<input type="text" id="user-input">
+<button id="input-button" onclick="reply()"> reply </button>
+<script>
+// apologies for terrible code
+var opening = [ "hi there!", "what have you broken this time?", "hello!", "" ];
+var options = [ 
+  [ "computer", "Is your computer running <b>slow</b>? Is an <b>input</b> or <b>output</b> device not working? Or is there some <b>other</b> problem?", 0 ],
+  [ "program", "Can you not <b>start</b> or <b>install</b> the program? Is it not <b>responding</b>? Or is it running but not <b>working</b> like it should?", 1 ],
+  [ "web", "Can you not connect to the <b>internet</b>, or some specific <b>website</b>? ", 2 ] ];
+var TSTree = [
+//0
+  [ [ "slow", "Are you on <b>windows</b>? Do you have either a lot of <b>program</b>s or a processor intensive <b>program</b> running?", 3 ],
+    [ "input", "Is it a <b>keyboard</b>, <b>mouse</b>, <b>trackpad</b> or <b>webcam</b>?", 4 ],
+    [ "output", "Is it a <b>screen</b> or <b>speaker</b>?", 5 ],
+    [ "other", "", 6 ] ],
+//1
+  [ [ "start", "Go to control panel -> programs and features -> uninstall (Windows) or finder -> applications (MacOS). Is the program you're trying to start there? (<b>yes</b> or <b>no</b>)", 7 ],
+    [ "install", "Did the program come as a zip file (or otherwise compressed)? (<b>yes</b> or <b>no</b>)", 8 ],
+    [ "responding", "", 9 ],
+    [ "working", "", 10 ] ],
+//2
+  [ [ "internet", "Is the problem with connecting to the <b>wifi</b>, or are you connected to the wifi but can't connect to the outside <b>internet</b>?", 11 ],
+    [ "website", "Does the error message in your browser mention <b>security</b>? Does it provide any <b>suggestions</b>? Or <b>neither</b>?", 12 ] ],
+//3
+  [ [ "windows", "This could be to do with the way windows sometimes stores files. Open the start menu, type 'cmd', and press enter. In the window that opens, type 'defrag -c -w' and press enter. It might take a while. If it worked, are there any <b>more</b> problems? If it didn't, do you have either a lot of <b>program</b>s or a processor intensive <b>program</b> running?", 13 ],
+    [ "program", "Press ctrl-shift-esc (Windows) or open Applications/Utilities/Activity Manager (MacOS). Does it indicate one or a few programs taking up a lot of resources? (<b>yes</b> or <b>no</b>)", 14 ] ],
+//4
+  [ [ "keyboard", "", 15 ],
+    [ "mouse", "", 15 ],
+    [ "trackpad", "", 16 ],
+    [ "webcam", "", 15 ] ],
+//5
+  [ [ "screen", "", 17 ],
+    [ "speaker", "", 15 ] ],
+//6
+  [ "You'll have to contact a real person, I'm afraid." ],
+//7
+  [ [ "yes", "", 18 ],
+    [ "no", "", 19 ] ],
+//8
+  [ [ "yes", "Have you decompressed it, and are you installing from the decompressed version? It is possible to try to run programs from inside a zip file, it just won't work. (<b>yes</b> or <b>no</b>)", 20 ],
+    [ "no", "", 21 ] ],
+//9
+  [ "Press ctrl-shift-esc (Windows) or open Applications/Utilities/Activity Manager (MacOS). Find the program in question and end it. Start the program again." ],
+//10
+  [ "Sorry, You'll have to talk to a real person about this one." ],
+//11
+  [ [ "wifi", "", 22 ],
+    [ "internet", "", 23 ] ],
+//12
+  [ [ "security", "", 24 ],
+    [ "suggestions", "Follow the suggestions. Did they work? (<b>yes</b> or <b>no</b>)", 25 ],
+    [ "neither", "", 26] ],
+//13
+  [ [ "more", "", 32 ],
+    [ "program", "Press ctrl-shift-esc (Windows) or open Applications/Utilities/Activity Manager (MacOS). Does it indicate one or a few programs taking up a lot of resources?", 14 ] ],
+//14
+  [ [ "yes", "", 27 ],
+    [ "no", "", 28 ] ],
+//15
+  [ "If you're on Windows, go to control panel -> devices and printers. Right click your device, select 'update driver', and follow the instructions. If the device isn't there or you're on MacOS, it'll be more complicated. find a real person." ],
+//16
+  [ "Make sure both the trackpad and your fingers are clean and dry. If it still doesn't work, your best bet is probably to get a new mouse." ],
+//17
+  [ "Some external monitors need their own power cable. If there's no port for a power cable, I dunno. Maybe it's broken?" ],
+//18
+  [ "You may be starting it from a broken shortcut. Locate the program in finder (MacOS) or by searching at the start menu (Windows), and run it from there." ],
+//19
+  [ "The program may well not be installed. Try reinstalling it." ],
+//20
+  [ [ "yes", "", 21 ],
+    [ "no", "", 29 ] ],
+//21
+  [ "Make sure you've downloaded the version of the program for your operating system and computer architecture (If you're not sure what this is, it's probably ix86, where x is the largest number available)." ],
+//22
+  [ "Ensure that you haven't accidentally pressed a hardware 'wifi off' switch. They're on more laptops than you might expect. Ask some relevant person if the password has been changed. Make sure the router is turned on." ],
+//23
+  [ "There's not much help I can give here. You may well have to phone your ISP, but check with a real person first." ],
+//24
+  [ "If you're on public wifi or doing something that needs to be secure (like banking), it's probably best not to risk it. If you think it's more likely that the website owner made a mistake than that someone's trying to steal passwords from the wifi network you're on, there should be a button under 'more information' that lets you add a temporary exception." ],
+//25
+  [ [ "yes", "", 30 ],
+    [ "no", "", 31 ] ],
+//26
+  [ "It sounds like the problem is probably on the website itself. Make sure you've got the address right, then ask someone about alternative ways to do whatever you need the website for." ],
+//27
+  [ "If the programs aren't important, close them. If they are, you need a better computer." ],
+//28
+  [ "You need a better computer. Or you have a really sophisticated malware infection, but that's pretty much not worth considering unless you've made an enemy in a nation state intelligence agency." ],
+//29
+  [ "Well, decompress it then. Try installing from the decompressed version." ],
+//30
+  [ "problem solved!" ],
+//31
+  [ "It sounds like the problem is probably on the website itself. Make sure you've got the address right, then ask someone about alternative ways to do whatever you need the website for." ],
+//32
+  [ "" ],  
+  ]
+var disc = document.getElementById("discussion");
+var text = "";
+var intro = opening[Math.round((opening.length - 1)*Math.random())];
+intro += "<br>I'm your friendly (honest!) automatic tech support.<br>So, what's the problem? Is it with your <b>computer</b>, a <b>program</b> or the <b>web</b>? Please answer with one of the words in bold so I can understand you!"
+
+function appendText(isuser, appended) {
+  if (isuser) {
+    text += "<font color='red'>";
+  } else {
+    text += "<font color='blue'>";
+  }
+  text += appended;
+  text += "</font><br>";
+  disc.innerHTML = text;
+}
+
+appendText(false, intro);
+
+function finish() {
+  appendText(false, "If there was anything else, reload the page.");
+  document.getElementById("input-button").parentNode.removeChild(document.getElementById("input-button"));
+}
+
+function reply() {
+  var reply = document.getElementById("user-input").value;
+  var answer = -1;
+  appendText(true, reply);
+  if (options.size == 1) {
+    appendText(false, options[0]);
+  } else {
+    for (i = 0; i < options.length; i++) {
+      if (reply.toUpperCase() == options[i][0].toUpperCase()) {
+        answer = i;
+      }
+    }
+    if (answer > -1) {
+      appendText(false, options[answer][1]);
+      if (options[answer][1] == "") {
+        appendText(false, TSTree[options[answer][2]][0]);
+        finish();
+      } else {
+        options = TSTree[options[answer][2]];
+      }
+    } else {
+      appendText(false, "Please answer with one of the words in <b>bold</b> so I can understand you!")
+    }
+  }  
+}
+
+</script>
+</body>
